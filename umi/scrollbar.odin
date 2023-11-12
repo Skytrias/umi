@@ -196,25 +196,25 @@ scrollbar :: proc(
 	text: string,
 	options: Scrollbar_Options,
 ) -> (item, rest, vscroll, hscroll: ^Item) {
-	item = item_make(ctx, parent, gen_id(parent, text))
+	item = item_make(ctx, parent, gen_id_simple(parent, text))
 	item.callback_class = scrollbar_panel_callback
 	item.layout_custom = true
 
 	// spawn vertical scrollbar
-	vscroll = item_make(ctx, item, gen_id(item, "vertical"))
+	vscroll = item_make(ctx, item, gen_id_simple(item, "vertical"))
 	vscroll.callback_class = scrollbar_slider_callback
 	vscroll.scrollbar.enabled = options.venabled
 	vscroll.scrollbar.vertical = true
 	vscroll.scrollbar.auto_hide = options.vauto_hide
 
 	// spawn horizontal scrollbar
-	hscroll = item_make(ctx, item, gen_id(item, "horizontal"))
+	hscroll = item_make(ctx, item, gen_id_simple(item, "horizontal"))
 	hscroll.callback_class = scrollbar_slider_callback
 	hscroll.scrollbar.enabled = options.henabled
 	hscroll.scrollbar.vertical = false
 	hscroll.scrollbar.auto_hide = options.hauto_hide
 
-	rest = item_make(ctx, item, gen_id(item, "rest"))
+	rest = item_make(ctx, item, gen_id_simple(item, "rest"))
 
 	item_alloc(ctx, item, Scrollbar_Panel {
 		{ hscroll, vscroll },

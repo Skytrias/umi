@@ -208,7 +208,7 @@ tooltip_spawn_next_to :: proc(
 		gap = 10,
 
 		fade_in = 2.5,
-		// fade_out = 2.5,
+		fade_out = 2.5,
 	})
 
 	return 

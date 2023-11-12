@@ -76,7 +76,7 @@ table :: proc(
 	parent: ^Item,
 	options: Table_Options,
 ) -> (root, header, content, footer: ^Item) {
-	root = item_make(ctx, parent, gen_id(parent, "rootzzz"))
+	root = item_make(ctx, parent, gen_id_simple(parent, "root"))
 	root.callback_class = table_root_callback
 	item_alloc(ctx, root, Table_Root {
 		options = options,
@@ -85,19 +85,19 @@ table :: proc(
 
 	root.cut_children = .Top
 
-	header = item_make(ctx, root, gen_id(root, "header"))
+	header = item_make(ctx, root, gen_id_simple(root, "header"))
 	header.callback_class = table_header_callback
 	header.layout_custom = true
 	header.layout_size.y = options.header_height
 
 	root.cut_children = .Bottom
 
-	footer = item_make(ctx, root, gen_id(root, "footer"))
+	footer = item_make(ctx, root, gen_id_simple(root, "footer"))
 	footer.layout_size.y = options.footer_height
 
 	root.cut_children = .Fill
 
-	content = item_make(ctx, root, gen_id(root, "content"))
+	content = item_make(ctx, root, gen_id_simple(root, "content"))
 	content.cut_children = .Top
 
 	return
@@ -120,10 +120,11 @@ table_row_callback :: proc(ctx: ^Context, item: ^Item, event: Call) -> int {
 table_row :: proc(
 	ctx: ^Context,
 	parent: ^Item, // should be the Table_Element.Content item
-	id: Id,
+	hash_text: string,
 	root: ^Item,
 	height: f32,
 ) -> (item: ^Item) {
+	id := gen_id_simple(parent, hash_text)
 	item = item_make(ctx, parent, id)
 	item.callback_class = table_row_callback
 	item.layout_custom = true

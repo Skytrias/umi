@@ -427,11 +427,11 @@ begin_layout :: proc(ctx: ^Context, width, height: int) -> ^Item {
 	free_all(mem.arena_allocator(&ctx.arena))
 	ctx.frame_index += 1
 
-	ctx.root = item_make(ctx, nil, gen_id(nil, "root"))
+	ctx.root = item_make(ctx, nil, gen_id_simple(nil, "root"))
 	ctx.root.layout = .Absolute
 	ctx.root.layout_size = { f32(width), f32(height) }
 
-	ctx.tooltips = item_make(ctx, ctx.root, gen_id(ctx.root, "tooltips"))
+	ctx.tooltips = item_make(ctx, ctx.root, gen_id_simple(ctx.root, "tooltips"))
 	ctx.tooltips.layout = .Absolute
 	ctx.tooltips.layout_size = { f32(width), f32(height) }
 	ctx.tooltips.callback_class = tooltip_root_callback
@@ -1141,19 +1141,53 @@ arrange :: proc(ctx: ^Context, item: ^Item, layout: ^RectF, gap: f32) {
 // ID gen - same as microui
 ////////////////////////////////////////////////////////////////////////////////
 
-gen_id_bytes :: proc(parent: ^Item, input: []byte) -> Id {
+// extract head/tail till a double ## otherwhise head/tail will equal the input
+hash_extract :: proc(input: string) -> (head: string, tail: string) {
+	hash_index := 0
+	hash_count := 0
+	for i in 0..<len(input) {
+		if input[i] == '#' {
+			if hash_count == 0 {
+				hash_index = i
+			}
+
+			hash_count += 1
+
+			// two are enough
+			if hash_count == 2 {
+				break
+			}
+		} else {
+			hash_count = 0
+		}
+	}
+
+	tail = input
+	head = input
+	if hash_count == 2 {
+		head = input[:hash_index]
+		tail = input[hash_index+2:]
+	} 
+
+	// fmt.eprintln("HEAD/TAIL", head, tail)
+	return
+}
+
+// attempts to extract a double hash from the input string
+gen_id_extract :: proc(parent: ^Item, input: string) -> (render: string, res: Id) {
+	head, tail := hash_extract(input)
+	bytes := transmute([]byte) tail
 	seed := parent != nil ? parent.id : 2166136261
-	return hash.fnv32a(input, seed)
+	render = head
+	res = hash.fnv32a(bytes, seed)
+	return
 }
 
-gen_id_string :: proc(parent: ^Item, input: string) -> Id {
-	return gen_id_bytes(parent, transmute([]byte) input)
-}
-
-gen_id :: proc { gen_id_bytes, gen_id_string }
-
-gen_idf :: proc(parent: ^Item, format: string, args: ..any) -> Id {
-	return gen_id_bytes(parent, transmute([]byte) fmt.tprintf(format, ..args))
+// hashes the whole input string no matter what
+gen_id_simple :: proc(parent: ^Item, input: string) -> Id {
+	bytes := transmute([]byte) input
+	seed := parent != nil ? parent.id : 2166136261
+	return hash.fnv32a(bytes, seed)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1193,11 +1227,11 @@ gen_idf :: proc(parent: ^Item, format: string, args: ..any) -> Id {
 // 	vertical: bool,
 // 	ratios_start: [2]f32 = { 0.5, 0.5 }
 // ) -> (item: ^Item) {
-// 	item = item_make(ctx, parent, gen_id(parent, "splitter"))
+// 	item = item_make(ctx, parent, gen_id_exp(parent, "splitter"))
 // 	item_alloc(ctx, item, Splitter_Panel { })
 // 	panel_data.vertical = vertical
 
-// 	slider := item_make(ctx, item, gen_id(item, "slider"))
+// 	slider := item_make(ctx, item, gen_id_exp(item, "slider"))
 // 	item_alloc(ctx, item, Splitter_Slider { })
 // 	panel_data.slider = slider_data
 
